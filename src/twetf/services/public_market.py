@@ -25,8 +25,21 @@ class PublicMarketStore:
     def __init__(self, path, updater=update_official):
         self.path = Path(path).resolve()
         self.updater = updater
+        self._ready = False
+        self._worker = None
+        self._worker_guard = threading.Lock()
         with _locks_guard:
             self.lock = _locks.setdefault(str(self.path), threading.Lock())
+
+    def start_refresh(self, offline=False):
+        """Seed locally, then update without blocking visitor page rendering."""
+        with self._worker_guard:
+            if not self._ready:
+                self.refresh(offline=True)
+                self._ready = True
+            if not offline and (self._worker is None or not self._worker.is_alive()):
+                self._worker = threading.Thread(target=self.refresh, daemon=True)
+                self._worker.start()
 
     def refresh(self, offline=False):
         with self.lock:

@@ -12,10 +12,10 @@ def main():
     st.set_page_config(page_title='台股 ETF 研究室｜公開展示', page_icon='📊', layout='wide')
     st.markdown('''<style>.block-container{padding-top:2rem;max-width:1450px}h1{letter-spacing:-.035em}div[data-testid="stMetric"]{background:white;padding:18px;border-radius:12px;border:1px solid #e3e9ee}.eyebrow{letter-spacing:.16em;font-size:12px;color:#087f8c;font-weight:700}</style>''', unsafe_allow_html=True)
     store = market_store(str(public_data_path()))
-    with st.spinner('載入官方盤後資料…'):
-        status = store.refresh(offline=bool(os.getenv('TWETF_OFFLINE')))
+    store.start_refresh(offline=bool(os.getenv('TWETF_OFFLINE')))
     repo = store.reader()
     try:
+        status = repo.setting('public_refresh', {})
         with st.sidebar:
             st.markdown('### ETF 研究室')
             st.caption('PUBLIC RESEARCH · 公開展示')
